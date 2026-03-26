@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Match Result</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            text-align: center;
+            color: white;
+        }
+
+        .score-box {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .card h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            margin: 10px 0 20px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .error-box {
+            background: white;
+            color: #d32f2f;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    {% if error %}
+
+        <!-- ERROR DISPLAY -->
+        <div class="error-box">
+            ⚠️ {{ error }}
+        </div>
+
+        <a href="/">⬅ Go Back</a>
+
+    {% else %}
+
+        <h1>🎉 Match Result</h1>
+
+        <!-- SCORE -->
+        <div class="score-box">
+            Compatibility Score: <strong>{{ data.score }}%</strong>
+        </div>
+
+        <!-- MATCH QUALITY -->
+        <div class="badge">
+            {% if data.score > 85 %}
+                🌟 Excellent Match
+            {% elif data.score > 65 %}
+                👍 Good Match
+            {% else %}
+                ⚠️ Low Compatibility
+            {% endif %}
+        </div>
+
+        <!-- STUDENT CARDS -->
+        <div class="cards">
+
+            <!-- YOU -->
+            <div class="card">
+                <h2>👤 You</h2>
+                {% for key, value in data.your_data.items() %}
+                    <p><strong>{{ key }}:</strong> {{ value }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- PARTNER -->
+            <div class="card">
+                <h2>🤝 Partner</h2>
+                {% for key, value in data.partner_data.items() %}
+                    <p><strong>{{ key }}:</strong> {{ value }}</p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <a href="/">⬅ Go Back</a>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

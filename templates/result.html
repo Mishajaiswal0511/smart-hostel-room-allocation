@@ -5,10 +5,11 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -19,7 +20,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
             text-align: center;
             color: white;
@@ -31,7 +32,13 @@
             padding: 15px;
             border-radius: 10px;
             font-size: 22px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+
+        .prediction {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
 
         .cards {
@@ -50,15 +57,9 @@
             text-align: left;
         }
 
-        .card h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .badge {
-            margin: 10px 0 20px;
+        .highlight {
+            color: red;
             font-weight: bold;
-            font-size: 18px;
         }
 
         .error-box {
@@ -70,16 +71,19 @@
             font-weight: bold;
         }
 
+        canvas {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
         a {
             display: inline-block;
             margin-top: 20px;
             color: white;
             text-decoration: none;
             font-weight: bold;
-        }
-
-        a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
@@ -88,61 +92,113 @@
 
 <div class="container">
 
-    {% if error %}
+{% if error %}
 
-        <!-- ERROR DISPLAY -->
-        <div class="error-box">
-            ⚠️ {{ error }}
-        </div>
+    <div class="error-box">⚠️ {{ error }}</div>
+    <a href="/">⬅ Go Back</a>
 
-        <a href="/">⬅ Go Back</a>
+{% else %}
 
-    {% else %}
+    <h1>🎉 Match Result</h1>
 
-        <h1>🎉 Match Result</h1>
+    <div class="score-box">
+        Compatibility Score: <strong>{{ data.score }}%</strong>
+    </div>
 
-        <!-- SCORE -->
-        <div class="score-box">
-            Compatibility Score: <strong>{{ data.score }}%</strong>
-        </div>
-
-        <!-- MATCH QUALITY -->
-        <div class="badge">
-            {% if data.score > 85 %}
-                🌟 Excellent Match
-            {% elif data.score > 65 %}
-                👍 Good Match
-            {% else %}
-                ⚠️ Low Compatibility
-            {% endif %}
-        </div>
-
-        <!-- STUDENT CARDS -->
-        <div class="cards">
-
-            <!-- YOU -->
-            <div class="card">
-                <h2>👤 You</h2>
-                {% for key, value in data.your_data.items() %}
-                    <p><strong>{{ key }}:</strong> {{ value }}</p>
-                {% endfor %}
-            </div>
-
-            <!-- PARTNER -->
-            <div class="card">
-                <h2>🤝 Partner</h2>
-                {% for key, value in data.partner_data.items() %}
-                    <p><strong>{{ key }}:</strong> {{ value }}</p>
-                {% endfor %}
-            </div>
-
-        </div>
-
-        <a href="/">⬅ Go Back</a>
-
+    <!-- Prediction -->
+    {% if data.prediction %}
+        <div class="prediction">{{ data.prediction }}</div>
     {% endif %}
 
+    <!-- Badge -->
+    <div class="prediction">
+        {% if data.score > 85 %}
+            🌟 Excellent Match
+        {% elif data.score > 65 %}
+            👍 Good Match
+        {% else %}
+            ⚠️ Low Compatibility
+        {% endif %}
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards">
+
+        <div class="card">
+            <h2>👤 You</h2>
+            {% for key, value in data.your_data.items() %}
+                <p><strong>{{ key }}:</strong> {{ value }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <h2>🤝 Partner</h2>
+            {% for key, value in data.partner_data.items() %}
+                <p>
+                    <strong>{{ key }}:</strong> 
+                    {% if data.your_data[key] != value %}
+                        <span class="highlight">{{ value }}</span>
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- CHART -->
+    <canvas id="chart"></canvas>
+
+    <a href="/">⬅ Go Back</a>
+
+{% endif %}
+
 </div>
+
+<script>
+{% if data %}
+
+const labels = [
+    "Sleep", "Wake", "Study", "Silence",
+    "Clean", "Intro", "Emotion", "Agree"
+];
+
+const s1 = [
+    {{ data.your_data.sleep_time }},
+    {{ data.your_data.wake_time }},
+    {{ data.your_data.study_hours }},
+    {{ data.your_data.silence_preference }},
+    {{ data.your_data.cleanliness_level }},
+    {{ data.your_data.introversion }},
+    {{ data.your_data.emotional_stability }},
+    {{ data.your_data.agreeableness }}
+];
+
+const s2 = [
+    {{ data.partner_data.sleep_time }},
+    {{ data.partner_data.wake_time }},
+    {{ data.partner_data.study_hours }},
+    {{ data.partner_data.silence_preference }},
+    {{ data.partner_data.cleanliness_level }},
+    {{ data.partner_data.introversion }},
+    {{ data.partner_data.emotional_stability }},
+    {{ data.partner_data.agreeableness }}
+];
+
+new Chart(document.getElementById("chart"), {
+    type: "bar",
+    data: {
+        labels: labels,
+        datasets: [
+            { label: "You", data: s1, backgroundColor: "#667eea" },
+            { label: "Partner", data: s2, backgroundColor: "#ff7e5f" }
+        ]
+    }
+});
+
+{% endif %}
+</script>
 
 </body>
 </html>

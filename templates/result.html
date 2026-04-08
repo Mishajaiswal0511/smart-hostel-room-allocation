@@ -8,84 +8,143 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
-        * { box-sizing: border-box; }
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            margin: 0;
-            padding: 20px;
-            overflow-x: hidden;
-        }
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(270deg, #667eea, #764ba2, #43cea2, #185a9d);
+    background-size: 800% 800%;
+    animation: gradientMove 15s ease infinite;
+    padding: 20px;
+}
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            text-align: center;
-            color: white;
-        }
+/* ANIMATION */
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-        .score-box {
-            background: white;
-            color: #333;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 22px;
-            margin-bottom: 10px;
-        }
+.container {
+    max-width: 1100px;
+    margin: auto;
+    text-align: center;
+    color: white;
+}
 
-        .prediction {
-            font-size: 18px;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
+/* GLASS CARD */
+.card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 18px;
+    color: white;
+    transition: 0.3s;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
 
-        .cards {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+}
 
-        .card {
-            flex: 1;
-            min-width: 300px;
-            background: white;
-            color: #333;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: left;
-        }
+/* FLEX */
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
 
-        .highlight {
-            color: red;
-            font-weight: bold;
-        }
+/* TITLE */
+h1 {
+    margin-bottom: 20px;
+    font-weight: 600;
+}
 
-        .error-box {
-            background: white;
-            color: #d32f2f;
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-        }
+/* SCORE BOX */
+.score-box {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 24px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
 
-        canvas {
-            margin-top: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-        }
+/* PREDICTION */
+.prediction {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
 
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-    </style>
+/* TEXT */
+.card p {
+    margin: 6px 0;
+    font-size: 14px;
+}
+
+/* EXPLANATION */
+ul {
+    margin-top: 10px;
+    padding-left: 18px;
+}
+
+li {
+    font-size: 13px;
+    margin: 4px 0;
+}
+
+/* HIGHLIGHT */
+.highlight {
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+/* ERROR */
+.error-box {
+    background: white;
+    color: red;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* BUTTON LINK */
+a {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+a:hover {
+    transform: scale(1.05);
+}
+
+/* CHART BOX */
+canvas {
+    margin-top: 30px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .cards {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -101,53 +160,79 @@
 
     <h1>🎉 Match Result</h1>
 
-    <div class="score-box">
-        Compatibility Score: <strong>{{ data.score }}%</strong>
-    </div>
+    <!-- ================== CASE 1: COMPARE TWO ================== -->
+    {% if data.partner_data %}
 
-    <!-- Prediction -->
-    {% if data.prediction %}
+        <div class="score-box">
+            Compatibility Score: <strong>{{ data.score }}%</strong>
+        </div>
+
         <div class="prediction">{{ data.prediction }}</div>
-    {% endif %}
 
-    <!-- Badge -->
-    <div class="prediction">
-        {% if data.score > 85 %}
-            🌟 Excellent Match
-        {% elif data.score > 65 %}
-            👍 Good Match
-        {% else %}
-            ⚠️ Low Compatibility
-        {% endif %}
-    </div>
+        <div class="cards">
 
-    <!-- CARDS -->
-    <div class="cards">
+            <div class="card">
+                <h2>👤 Student 1</h2>
+                {% for key, value in data.your_data.items() %}
+                    <p><strong>{{ key }}:</strong> {{ value }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="card">
+                <h2>🤝 Student 2</h2>
+                {% for key, value in data.partner_data.items() %}
+                    <p>
+                        <strong>{{ key }}:</strong> 
+                        {% if data.your_data[key] != value %}
+                            <span class="highlight">{{ value }}</span>
+                        {% else %}
+                            {{ value }}
+                        {% endif %}
+                    </p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+    {% else %}
+
+    <!-- ================== CASE 2: TOP 3 MATCHES ================== -->
+
+        <h2>👤 Your Profile</h2>
 
         <div class="card">
-            <h2>👤 You</h2>
             {% for key, value in data.your_data.items() %}
                 <p><strong>{{ key }}:</strong> {{ value }}</p>
             {% endfor %}
         </div>
 
-        <div class="card">
-            <h2>🤝 Partner</h2>
-            {% for key, value in data.partner_data.items() %}
-                <p>
-                    <strong>{{ key }}:</strong> 
-                    {% if data.your_data[key] != value %}
-                        <span class="highlight">{{ value }}</span>
-                    {% else %}
-                        {{ value }}
-                    {% endif %}
-                </p>
-            {% endfor %}
+        <h2>🔥 Top 3 Matches</h2>
+
+        <div class="cards">
+        {% for match in data.matches %}
+
+            <div class="card">
+                <h3>🤝 Match ({{ match.score }}%)</h3>
+
+                {% for key, value in match.partner.items() %}
+                    <p><strong>{{ key }}:</strong> {{ value }}</p>
+                {% endfor %}
+
+                <h4>💡 Why matched?</h4>
+                <ul>
+                    {% for line in match.explanation %}
+                        <li>{{ line }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        {% endfor %}
         </div>
 
-    </div>
+    {% endif %}
 
-    <!-- CHART -->
+    <!-- ================== RADAR CHART ================== -->
+
     <canvas id="chart"></canvas>
 
     <a href="/">⬅ Go Back</a>
@@ -164,7 +249,7 @@ const labels = [
     "Clean", "Intro", "Emotion", "Agree"
 ];
 
-const s1 = [
+const you = [
     {{ data.your_data.sleep_time }},
     {{ data.your_data.wake_time }},
     {{ data.your_data.study_hours }},
@@ -175,7 +260,8 @@ const s1 = [
     {{ data.your_data.agreeableness }}
 ];
 
-const s2 = [
+{% if data.partner_data %}
+const partner = [
     {{ data.partner_data.sleep_time }},
     {{ data.partner_data.wake_time }},
     {{ data.partner_data.study_hours }},
@@ -185,20 +271,60 @@ const s2 = [
     {{ data.partner_data.emotional_stability }},
     {{ data.partner_data.agreeableness }}
 ];
+{% else %}
+const partner = [
+    {{ data.matches[0].partner.sleep_time }},
+    {{ data.matches[0].partner.wake_time }},
+    {{ data.matches[0].partner.study_hours }},
+    {{ data.matches[0].partner.silence_preference }},
+    {{ data.matches[0].partner.cleanliness_level }},
+    {{ data.matches[0].partner.introversion }},
+    {{ data.matches[0].partner.emotional_stability }},
+    {{ data.matches[0].partner.agreeableness }}
+];
+{% endif %}
 
 new Chart(document.getElementById("chart"), {
     type: "bar",
     data: {
         labels: labels,
         datasets: [
-            { label: "You", data: s1, backgroundColor: "#667eea" },
-            { label: "Partner", data: s2, backgroundColor: "#ff7e5f" }
+            {
+                label: "You",
+                data: you,
+                borderRadius: 8
+            },
+            {
+                label: "Match",
+                data: partner,
+                borderRadius: 8
+            }
         ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: {
+                    color: "white"
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: "white" },
+                grid: { display: false }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: { color: "white" },
+                grid: { color: "rgba(255,255,255,0.2)" }
+            }
+        }
     }
 });
 
 {% endif %}
 </script>
-
 </body>
 </html>

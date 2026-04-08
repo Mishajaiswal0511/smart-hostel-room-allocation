@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,75 +11,85 @@
 
 <body>
 
+<!-- 🌙 DARK MODE TOGGLE -->
+<div style="text-align:right; padding:10px;">
+    <button class="toggle-btn" onclick="toggleTheme()">🌙 / ☀️</button>
+</div>
+
 <div class="container">
 
     <h1 class="heading-main">Smart Hostel Room Allocation</h1>
+
     <!-- ADD NEW STUDENT -->
     <div class="card">
         <h2 class="heading-sub">Add New Student</h2>
 
         <form action="/submit" method="POST">
-<input type="number" name="student_id" placeholder="Student ID" required>
 
-<input type="number" name="sleep_time" placeholder="Sleep Time" required>
-<input type="number" name="wake_time" placeholder="Wake Time" required>
-<input type="number" name="study_hours" placeholder="Study Hours" required>
+            <input type="number" name="student_id" placeholder="Student ID" min="1" required>
 
-<input type="number" name="silence_preference" placeholder="Silence Preference" required>
-<input type="number" name="cleanliness_level" placeholder="Cleanliness Level" required>
+            <input type="number" name="sleep_time" placeholder="Sleep Time (0-23)" min="0" max="23" required>
+            <input type="number" name="wake_time" placeholder="Wake Time (0-23)" min="0" max="23" required>
+            <input type="number" name="study_hours" placeholder="Study Hours (0-12)" min="0" max="12" required>
 
-<input type="number" name="introversion" placeholder="Introversion" required>
-<input type="number" name="emotional_stability" placeholder="Emotional Stability" required>
-<input type="number" name="agreeableness" placeholder="Agreeableness" required>
-        <h3>⭐ Set Your Priorities</h3>
+            <input type="number" name="silence_preference" placeholder="Silence (1-10)" min="1" max="10" required>
+            <input type="number" name="cleanliness_level" placeholder="Cleanliness (1-10)" min="1" max="10" required>
 
-<div class="priority-row">
-    <label>Sleep Time</label>
-    <input type="hidden" name="sleep_p" id="sleep_p" required>
-    <div class="stars" data-input="sleep_p"></div>
-</div>
+            <input type="number" name="introversion" placeholder="Introversion (1-10)" min="1" max="10" required>
+            <input type="number" name="emotional_stability" placeholder="Emotional Stability (1-10)" min="1" max="10" required>
+            <input type="number" name="agreeableness" placeholder="Agreeableness (1-10)" min="1" max="10" required>
 
-<div class="priority-row">
-    <label>Wake Time</label>
-    <input type="hidden" name="wake_p" id="wake_p" required>
-    <div class="stars" data-input="wake_p"></div>
-</div>
+            <h3>⭐ Set Your Priorities</h3>
 
-<div class="priority-row">
-    <label>Study Hours</label>
-    <input type="hidden" name="study_p" id="study_p" required>
-    <div class="stars" data-input="study_p"></div>
-</div>
+            <!-- PRIORITY ROWS -->
+            <div class="priority-row">
+                <label>Sleep Time</label>
+                <input type="hidden" name="sleep_p" id="sleep_p" required>
+                <div class="stars" data-input="sleep_p"></div>
+            </div>
 
-<div class="priority-row">
-    <label>Silence</label>
-    <input type="hidden" name="silence_p" id="silence_p" required>
-    <div class="stars" data-input="silence_p"></div>
-</div>
+            <div class="priority-row">
+                <label>Wake Time</label>
+                <input type="hidden" name="wake_p" id="wake_p" required>
+                <div class="stars" data-input="wake_p"></div>
+            </div>
 
-<div class="priority-row">
-    <label>Cleanliness</label>
-    <input type="hidden" name="clean_p" id="clean_p" required>
-    <div class="stars" data-input="clean_p"></div>
-</div>
+            <div class="priority-row">
+                <label>Study Hours</label>
+                <input type="hidden" name="study_p" id="study_p" required>
+                <div class="stars" data-input="study_p"></div>
+            </div>
 
-<div class="priority-row">
-    <label>Introversion</label>
-    <input type="hidden" name="intro_p" id="intro_p" required>
-    <div class="stars" data-input="intro_p"></div>
-</div>
+            <div class="priority-row">
+                <label>Silence</label>
+                <input type="hidden" name="silence_p" id="silence_p" required>
+                <div class="stars" data-input="silence_p"></div>
+            </div>
 
-<div class="priority-row">
-    <label>Emotional Stability</label>
-    <input type="hidden" name="emotion_p" id="emotion_p" required>
-    <div class="stars" data-input="emotion_p"></div>
-</div>
+            <div class="priority-row">
+                <label>Cleanliness</label>
+                <input type="hidden" name="clean_p" id="clean_p" required>
+                <div class="stars" data-input="clean_p"></div>
+            </div>
 
-<div class="priority-row">
-    <label>Agreeableness</label>
-    <input type="hidden" name="agree_p" id="agree_p" required>
-    <div class="stars" data-input="agree_p"></div>
-</div>
+            <div class="priority-row">
+                <label>Introversion</label>
+                <input type="hidden" name="intro_p" id="intro_p" required>
+                <div class="stars" data-input="intro_p"></div>
+            </div>
+
+            <div class="priority-row">
+                <label>Emotional Stability</label>
+                <input type="hidden" name="emotion_p" id="emotion_p" required>
+                <div class="stars" data-input="emotion_p"></div>
+            </div>
+
+            <div class="priority-row">
+                <label>Agreeableness</label>
+                <input type="hidden" name="agree_p" id="agree_p" required>
+                <div class="stars" data-input="agree_p"></div>
+            </div>
+
             <button type="submit">Find Roommate</button>
         </form>
     </div>
@@ -95,62 +104,20 @@
         </form>
     </div>
 
-    <!-- NEW: COMPARE TWO STUDENTS -->
-  <div class="card">
-    <h2 class="heading-sub">Compare Two Students</h2>
+    <!-- COMPARE TWO STUDENTS -->
+    <div class="card">
+        <h2 class="heading-sub">Compare Two Students</h2>
 
-    <form action="/check_two" method="POST">
-
-        <input type="number" name="student1" placeholder="Student ID 1" required>
-        <input type="number" name="student2" placeholder="Student ID 2" required>
-
-        <!-- 🔥 PRIORITY SECTION -->
-       
-
-        <button type="submit">Check Compatibility</button>
-    </form>
-</div>
+        <form action="/check_two" method="POST">
+            <input type="number" name="student1" placeholder="Student ID 1" required>
+            <input type="number" name="student2" placeholder="Student ID 2" required>
+            <button type="submit">Check Compatibility</button>
+        </form>
+    </div>
 
 </div>
 
-<!-- VALIDATION -->
-<script>
-document.querySelectorAll("form").forEach(form => {
-    form.addEventListener("submit", function(e) {
-        let inputs = form.querySelectorAll("input[type='number']");
-        for (let input of inputs) {
-            let value = Number(input.value);
-
-            if (!Number.isInteger(value) || value < 0) {
-                alert("❌ Only positive integers allowed!");
-                e.preventDefault();
-                return;
-            }
-        }
-    });
-});
-</script>
-
-</body>
-</html>
-<!-- VALIDATION -->
-<script>
-document.querySelectorAll("form").forEach(form => {
-    form.addEventListener("submit", function(e) {
-        let inputs = form.querySelectorAll("input[type='number']");
-        for (let input of inputs) {
-            let value = Number(input.value);
-
-            if (!Number.isInteger(value) || value < 0) {
-                alert("❌ Only positive integers allowed!");
-                e.preventDefault();
-                return;
-            }
-        }
-    });
-});
-</script>
-
+<!-- ⭐ STAR SCRIPT -->
 <script>
 document.querySelectorAll(".stars").forEach(container => {
     const inputId = container.dataset.input;
@@ -161,18 +128,15 @@ document.querySelectorAll(".stars").forEach(container => {
         star.innerHTML = "★";
         star.classList.add("star");
 
-        // CLICK
         star.addEventListener("click", () => {
             hiddenInput.value = i;
             updateStars(container, i);
         });
 
-        // HOVER
         star.addEventListener("mouseover", () => {
             updateStars(container, i);
         });
 
-        // RESET AFTER HOVER
         star.addEventListener("mouseout", () => {
             updateStars(container, hiddenInput.value || 0);
         });
@@ -192,5 +156,31 @@ document.querySelectorAll(".stars").forEach(container => {
     }
 });
 </script>
+
+<!-- 🌙 DARK MODE SCRIPT -->
+<script>
+function toggleTheme() {
+    document.body.classList.toggle("light-mode");
+}
+</script>
+
+<!-- VALIDATION -->
+<script>
+document.querySelectorAll("form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+        let inputs = form.querySelectorAll("input[type='number']");
+        for (let input of inputs) {
+            let value = Number(input.value);
+
+            if (!Number.isInteger(value) || value < 0) {
+                alert("❌ Only positive integers allowed!");
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+});
+</script>
+
 </body>
 </html>

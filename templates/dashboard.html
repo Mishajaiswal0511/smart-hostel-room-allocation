@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Smart Hostel</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <nav style="display: flex; justify-content: center; padding: 2rem 0; background: transparent; position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(10px);">
+        <div class="tab-nav scroll-anim visible" style="margin-bottom: 0; padding: 0.6rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; padding: 0 1.5rem; border-right: 1px solid rgba(255,255,255,0.1); margin-right: 1rem;">
+                <img src="{{ url_for('static', filename='logo.png') }}" style="width:32px; height:32px; margin-right:10px;">
+                <span style="font-weight: 800; letter-spacing: -0.02em; font-size: 1.1rem; color: white;">SmartHostel</span>
+            </div>
+            <button class="tab-btn active" onclick="switchMainTab('tab-dash', this)">🚀 Overview</button>
+            {% if role == 'admin' %}
+            <button class="tab-btn" onclick="switchMainTab('tab-add', this)">➕ Add Student</button>
+            {% endif %}
+            <button class="tab-btn" onclick="switchMainTab('tab-match', this)">🔍 Find Match</button>
+            <button class="tab-btn" onclick="switchMainTab('tab-compare', this)">⚖️ Compare</button>
+            <a href="/logout" class="tab-btn" style="color: #ef4444; text-decoration: none; display: flex; align-items: center; border-left: 1px solid rgba(255,255,255,0.1); margin-left:1rem; padding-left:1.5rem;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 1100px; padding-top: 0; align-items: stretch;">
+        
+        <!-- =================== DASHBOARD TAB =================== -->
+        <div id="tab-dash" class="tab-content active">
+            <section id="dashboard" class="scroll-anim visible" style="padding-top:0;">
+                
+                {% if role == 'admin' %}
+                <!-- ADMIN DASHBOARD -->
+                <div class="card" style="width: 100%; padding:2.5rem; margin-bottom: 2.5rem;">
+                    <h2 class="section-title" style="text-align:left;">Admin Overview</h2>
+                    <p class="section-desc" style="text-align:left; margin-bottom:2rem;">Global insight into the hostel habit matrix.</p>
+                    
+                    <div class="table-responsive" style="max-height: 50vh; overflow-y:auto; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                        <table class="admin-table">
+                            <thead style="position: sticky; top: 0; background: #0f172a; z-index: 5;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Schedule</th>
+                                    <th>Vibe</th>
+                                    <th>Social</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in students %}
+                                <tr>
+                                    <td><strong>#{{ s.student_id }}</strong></td>
+                                    <td>{{ s.sleep_time }}:00 → {{ s.wake_time }}:00</td>
+                                    <td>{{ s.cleanliness_level }}/10 Clean</td>
+                                    <td>{{ s.introversion }}/10 Social</td>
+                                    <td>
+                                        <form action="/delete/{{ s.student_id }}" method="POST" style="margin:0;">
+                                            <button type="submit" class="btn-delete" style="padding:0.4rem 0.8rem; font-size:0.75rem;">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="dash-container">
+                    <div class="dash-grid">
+                        <!-- LEFT PANEL: Primary Identity -->
+                        <div class="dash-left scroll-anim visible">
+                            <div class="glass-card profile-main-card">
+                                <div class="profile-meta">
+                                    <span class="status-tag">Live Sync Active</span>
+                                    <button class="btn-glossy-edit" onclick="openUpdateModal()">✏️ Edit</button>
+                                </div>
+                                
+                                <div class="greeting-hero">
+                                    <h1 class="hero-text">
+                                        Hello, <br>
+                                        <span class="name-gradient">{{ data.your_data.name if data.your_data.name else "Student #" ~ data.your_data.student_id }}</span>
+                                    </h1>
+                                    <p class="hero-subtext">Your habitual profile is fully synchronized with the hostal ecosystem.</p>
+                                </div>
+
+                                <div class="index-score-wrap">
+                                    <div class="glow-index">
+                                        <div class="index-inner">
+                                            <span class="index-label">Match Index</span>
+                                            <span class="index-value">{{ data.matches[0].score }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="personality-insight">
+                                    <div class="insight-header">
+                                        <div class="icon-pulse">🧠</div>
+                                        <h4>Global Personality Analysis</h4>
+                                    </div>
+                                    <p id="aiBio" class="insight-body">Initializing Neural Engine...</p>
+                                </div>
+
+                                <div class="radar-box">
+                                    <h4 class="radar-title">📊 Compatibility Radar</h4>
+                                    <div class="radar-canvas-wrap"><canvas id="dashChart"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT PANEL: Peer Connections -->
+                        <div class="dash-right scroll-anim visible">
+                            <div class="section-header-row">
+                                <h2 class="dash-section-title">Top 3 Peer Matches</h2>
+                                <span class="match-count">3 Results Found</span>
+                            </div>
+
+                            <div class="matches-stack">
+                                {% for match in data.matches %}
+                                <div class="glass-card match-row-card">
+                                    <div class="match-row-content">
+                                        <div class="match-main-info">
+                                            <h4 class="match-identity">
+                                                {% if match.partner.name %}
+                                                    {{ match.partner.name }} <span class="id-dim">#{{ match.partner.student_id }}</span>
+                                                {% else %}
+                                                    Student #{{ match.partner.student_id }}
+                                                {% endif %}
+                                            </h4>
+                                            <div class="badge-row" id="badges-{{ match.partner.student_id }}"></div>
+                                            
+                                            <div class="synergy-note">
+                                                <span class="syn-indicator"></span>
+                                                <p>High synergy in <strong>{{ "social style" if match.partner.introversion == data.your_data.introversion else "living habits" }}</strong></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="match-points-col">
+                                            <ul class="mini-highlight">
+                                                {% for line in match.explanation[:2] %}
+                                                <li><span>✨</span> {{ line }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+
+                                        <div class="match-score-pill">
+                                            {{ match.score }}%
+                                        </div>
+                                    </div>
+                                </div>
+                                <script>
+                                    (function() {
+                                        const container = document.getElementById('badges-{{ match.partner.student_id }}');
+                                        const p = {
+                                            sleep: {{ match.partner.sleep_time }},
+                                            wake: {{ match.partner.wake_time }},
+                                            clean: {{ match.partner.cleanliness_level }},
+                                            social: {{ match.partner.introversion }},
+                                            emotion: {{ match.partner.emotional_stability }}
+                                        };
+                                        let badges = "";
+                                        if (p.sleep >= 22 || p.sleep <= 2) badges += '<span class="l-badge">🌙</span>';
+                                        if (p.wake >= 4 && p.wake <= 7) badges += '<span class="l-badge">☀️</span>';
+                                        if (p.clean >= 8) badges += '<span class="l-badge">✨</span>';
+                                        if (p.social >= 8) badges += '<span class="l-badge">🔥</span>';
+                                        if (p.social <= 3) badges += '<span class="l-badge">🧘</span>';
+                                        container.innerHTML = badges;
+                                    })();
+                                </script>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- =================== ADD STUDENT TAB =================== -->
+        {% if role == 'admin' %}
+        <div id="tab-add" class="tab-content">
+            <section id="add-student" class="scroll-anim" style="padding-top:0; display:flex; justify-content:center;">
+                <div class="card" style="max-width: 800px; width:100%;">
+                    <h2 class="section-title">Enrol Profile</h2>
+                    <p class="section-desc">Create a new digital identity for the hostel ecosystem.</p>
+                    <form id="addStudentForm" data-route="/submit">
+                        <div class="form-section" style="margin-top:0; padding-top:0; border-top:none;">
+                            <div class="form-section-title">Profile Basics</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <div class="field">
+                                    <div class="field-label">Student Name (Optional) <span class="hint" data-tip="The display name for others to see.">ⓘ</span></div>
+                                    <input type="text" name="name" placeholder="e.g. Sara" data-error="Please enter a valid name">
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Student ID / Registration ID <span class="hint" data-tip="Unique ID assigned by the institution.">ⓘ</span></div>
+                                    <input type="number" name="student_id" placeholder="e.g. 12045" min="1" required data-error="Student ID is required">
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="form-section-title">Daily Cycle</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <div class="field">
+                                    <div class="field-label">Sleep Time (Bedtime) <span class="hint" data-tip="When do you usually go to bed?">ⓘ</span></div>
+                                    <input type="time" name="sleep_time_ui" required data-error="Please select your sleep time">
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Wake-up Time <span class="hint" data-tip="When do you usually wake up?">ⓘ</span></div>
+                                    <input type="time" name="wake_time_ui" required data-error="When do you typically wake up?">
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="form-section-title">LifeStyle Habits (1-10)</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                                <div class="field">
+                                    <div class="field-label">Your Cleanliness <span class="hint" data-tip="Rate how tidy YOU keep your space (1:Messy, 10:Spotless).">ⓘ</span></div>
+                                    <input type="number" name="cleanliness_level" min="1" max="10" value="5" required data-error="Tell us about your cleaning habits">
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Social Energy <span class="hint" data-tip="How much you like to socialize (1:Introvert, 10:Extrovert).">ⓘ</span></div>
+                                    <input type="number" name="introversion" min="1" max="10" value="5" required data-error="Enter your social energy level">
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Emotional Stability <span class="hint" data-tip="How calm YOU usually are (1:Moody, 10:Calm).">ⓘ</span></div>
+                                    <input type="number" name="emotional_stability" min="1" max="10" value="5" required data-error="Select your emotional stability">
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top:1.5rem;">
+                                <div class="field">
+                                    <div class="field-label">Study Duration <span class="hint" data-tip="Avg hours you study daily.">ⓘ</span></div>
+                                    <input type="number" name="study_hours" min="0" max="12" value="4" required data-error="How many hours do you study?">
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Need for Silence <span class="hint" data-tip="How much you value quiet (1:Loud ok, 10:Silent only).">ⓘ</span></div>
+                                    <input type="number" name="silence_preference" min="1" max="10" value="5" required data-error="Indicate your silence preference">
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PRIORITY WEIGHTAGE SYSTEM -->
+                        <div class="form-section priority-section">
+                            <div class="form-section-title">Match Priorities (1-5 ⭐)</div>
+                            <p style="font-size:0.85rem; opacity:0.6; margin-bottom:1.5rem;">Tell us what features matter MOST to you when matching.</p>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <div>
+                                    <div class="priority-row"><label>Sleep Timing</label><div class="stars" data-name="sleep_p"><span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star active" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span></div><input type="hidden" name="sleep_p" value="3"></div>
+                                    <div class="priority-row"><label>Study Habit</label><div class="stars" data-name="study_p"><span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star active" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span></div><input type="hidden" name="study_p" value="3"></div>
+                                    <div class="priority-row"><label>Cleanliness</label><div class="stars" data-name="clean_p"><span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star active" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span></div><input type="hidden" name="clean_p" value="3"></div>
+                                </div>
+                                <div>
+                                    <div class="priority-row"><label>Social Vibe</label><div class="stars" data-name="intro_p"><span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star active" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span></div><input type="hidden" name="intro_p" value="3"></div>
+                                    <div class="priority-row"><label>Silence Need</label><div class="stars" data-name="silence_p"><span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star active" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span></div><input type="hidden" name="silence_p" value="3"></div>
+                                    <div class="priority-row"><label>Wake Timing</label><div class="stars" data-name="wake_p"><span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star active" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span></div><input type="hidden" name="wake_p" value="3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-title">Personal Bio</div>
+                            <textarea name="description" placeholder="A short description about yourself..." style="width:100%; min-height:100px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius:14px; padding:1rem; color:white; font-family:inherit; outline:none; font-size:0.95rem;" data-error="Tell us a bit about yourself"></textarea>
+                            <div class="error-msg"></div>
+                        </div>
+                        <button class="btn shimmer" type="submit">Digitize Profile</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+        {% endif %}
+
+        <!-- =================== FIND MATCH TAB =================== -->
+        <div id="tab-match" class="tab-content">
+            <section id="check-existing" class="scroll-anim" style="padding-top:0; display:flex; justify-content:center;">
+                <div class="card" style="max-width: 600px; width:100%;">
+                    <h2 class="section-title">Neuro-Match</h2>
+                    <p class="section-desc">Search the dataset for synchronized roommate profiles.</p>
+                    <form id="checkForm" data-route="/check">
+                        <input type="number" name="student_id" placeholder="Enter Registration ID" min="1" required style="width:100%; margin-bottom:1.5rem;">
+                        <button class="btn shimmer" type="submit" style="width: 100%;">Search Database</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <!-- =================== COMPARE TAB =================== -->
+        <div id="tab-compare" class="tab-content">
+            <section id="compare" class="scroll-anim" style="padding-top:0; display:flex; justify-content:center;">
+                <div class="card" style="max-width: 600px; width:100%;">
+                    <h2 class="section-title">Synergy Lab</h2>
+                    <p class="section-desc">Compare two entities for compatibility probability.</p>
+                    <form id="compareForm" data-route="/check_two">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                            <input type="number" name="student1" placeholder="ID Alpha" min="1" required>
+                            <input type="number" name="student2" placeholder="ID Beta" min="1" required>
+                        </div>
+                        <button class="btn shimmer" type="submit" style="width: 100%;">Analyze Synergy</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- RESULT MODAL -->
+    <div id="resultModal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 650px; width: 90%;">
+            <h2 id="resultModalTitle" class="section-title">Result</h2>
+            <div id="resultModalBody" style="margin-bottom: 2rem;"></div>
+            <button class="btn btn-cancel" onclick="closeModals()" style="width: auto; margin: 0 auto; padding: 0.8rem 2.5rem; border-radius: 30px;">Close</button>
+        </div>
+    </div>
+
+    {% if role == 'student' %}
+    <!-- UPDATE MODAL -->
+    <div id="updateModal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 800px; width: 95%;">
+            <h2 class="section-title">Edit Your Profile</h2>
+            <form id="updateForm" data-route="/update">
+                <div class="form-section" style="border:none; padding:0; margin:0;">
+                    <div class="form-section-title">Daily Cycle</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom:1.5rem;">
+                        <div class="field">
+                            <label>Sleep Time (Bedtime) <span class="hint" data-tip="When you usually go to sleep.">ⓘ</span></label>
+                            <input type="time" name="sleep_time_ui" required data-error="Please select bedtime">
+                            <div class="error-msg"></div>
+                        </div>
+                        <div class="field">
+                            <label>Wake-up Time <span class="hint" data-tip="When you usually wake up.">ⓘ</span></label>
+                            <input type="time" name="wake_time_ui" required data-error="Please select wake time">
+                            <div class="error-msg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title">Habit Metrics (1-10)</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom:1.5rem;">
+                        <div class="field">
+                            <label>Study Hours <span class="hint" data-tip="Daily study duration.">ⓘ</span></label>
+                            <input type="number" name="study_hours" value="{{ data.your_data.study_hours }}" min="0" max="12" required data-error="Enter study hours">
+                            <div class="error-msg"></div>
+                        </div>
+                        <div class="field">
+                            <label>Social Energy <span class="hint" data-tip="1:Introvert, 10:Extrovert.">ⓘ</span></label>
+                            <input type="number" name="introversion" value="{{ data.your_data.introversion }}" min="1" max="10" required data-error="Enter social level">
+                            <div class="error-msg"></div>
+                        </div>
+                        <div class="field">
+                            <label>Stability <span class="hint" data-tip="1:Moody, 10:Calm.">ⓘ</span></label>
+                            <input type="number" name="emotional_stability" value="{{ data.your_data.emotional_stability }}" min="1" max="10" required data-error="Enter stability level">
+                            <div class="error-msg"></div>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="field">
+                            <label>Cleanliness <span class="hint" data-tip="How tidy YOU keep your room.">ⓘ</span></label>
+                            <input type="number" name="cleanliness_level" value="{{ data.your_data.cleanliness_level }}" min="1" max="10" required data-error="Enter cleanliness level">
+                            <div class="error-msg"></div>
+                        </div>
+                        <div class="field">
+                            <label>Silence Need <span class="hint" data-tip="How much quiet you need.">ⓘ</span></label>
+                            <input type="number" name="silence_preference" value="{{ data.your_data.silence_preference }}" min="1" max="10" required data-error="Enter silence preference">
+                            <div class="error-msg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section priority-section">
+                    <div class="form-section-title">Match Priorities (1-5 ⭐)</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <div class="priority-row"><label>Sleep Timing</label><div class="stars" data-name="sleep_p">{% for i in range(1, 6) %}<span class="star {{ 'active' if data.your_data.sleep_p >= i else '' }}" data-val="{{ i }}">★</span>{% endfor %}</div><input type="hidden" name="sleep_p" value="{{ data.your_data.sleep_p }}"></div>
+                            <div class="priority-row"><label>Study Habit</label><div class="stars" data-name="study_p">{% for i in range(1, 6) %}<span class="star {{ 'active' if data.your_data.study_p >= i else '' }}" data-val="{{ i }}">★</span>{% endfor %}</div><input type="hidden" name="study_p" value="{{ data.your_data.study_p }}"></div>
+                        </div>
+                        <div>
+                            <div class="priority-row"><label>Social Vibe</label><div class="stars" data-name="intro_p">{% for i in range(1, 6) %}<span class="star {{ 'active' if data.your_data.intro_p >= i else '' }}" data-val="{{ i }}">★</span>{% endfor %}</div><input type="hidden" name="intro_p" value="{{ data.your_data.intro_p }}"></div>
+                            <div class="priority-row"><label>Cleanliness</label><div class="stars" data-name="clean_p">{% for i in range(1, 6) %}<span class="star {{ 'active' if data.your_data.clean_p >= i else '' }}" data-val="{{ i }}">★</span>{% endfor %}</div><input type="hidden" name="clean_p" value="{{ data.your_data.clean_p }}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title">Personal Bio</div>
+                    <textarea name="description" placeholder="A short description about yourself..." style="width:100%; min-height:80px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius:14px; padding:1rem; color:white; font-family:inherit; outline:none; font-size:0.95rem;">{{ data.your_data.description }}</textarea>
+                </div>
+
+                <div style="display:flex; gap:1rem; margin-top:2rem;">
+                    <button class="btn shimmer" type="submit" style="margin:0; flex:2;">Save Profile Signature</button>
+                    <button class="btn btn-cancel" type="button" onclick="closeModals()" style="margin:0; flex:1; background:rgba(255,255,255,0.05);">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="processingOverlay" class="modal-backdrop" style="z-index: 10000; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter: blur(12px) saturate(180%);">
+        <div class="card float-anim" style="max-width:300px; padding:2rem; text-align:center; border: 1px solid var(--primary-color);">
+            <div class="shimmer" style="width: 50px; height: 50px; border-radius: 50%; border: 4px dotted var(--primary-color); border-top-color: transparent; margin: 0 auto 1.5rem; animation: spin 1s linear infinite;"></div>
+            <h3 style="margin:0; font-weight:700; background: linear-gradient(135deg, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Processing Matrix...</h3>
+            <p style="font-size:0.85rem; opacity:0.6; margin-top:0.5rem;">Synchronizing Habitual Data</p>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #processingOverlay { display: none !important; }
+        #processingOverlay.show { display: flex !important; }
+    </style>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script>
+        function switchMainTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if(target) {
+                target.classList.add('active');
+                if(btn) btn.classList.add('active');
+                document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
+            }
+        }
+
+        {% if role == 'student' and data %}
+        function typeWriter(text, elementId, speed = 15) {
+            let i = 0; const el = document.getElementById(elementId);
+            if(!el) return; el.innerHTML = "";
+            function type() {
+                if (i < text.length) { el.innerHTML += text.charAt(i); i++; setTimeout(type, speed); }
+            }
+            type();
+        }
+        (function generateAiBio() {
+            const d = { social: {{ data.your_data.introversion }}, clean: {{ data.your_data.cleanliness_level }}, emotion: {{ data.your_data.emotional_stability }}, study: {{ data.your_data.study_hours }}, silence: {{ data.your_data.silence_preference }} };
+            let text = "Based on our Habitual Matrix mapping, you are a ";
+            if(d.social >= 8) text += "highly social explorer. "; else if(d.social <= 3) text += "tranquil deep-thinker. "; else text += "balanced individual. ";
+            text += d.clean >= 8 ? "Your meticulous nature ensures a pristine environment. " : "You favor comfort over strict order. ";
+            text += d.emotion >= 8 ? "Your calm spirit anchors the room. " : "Your vibrant energy keeps things lively. ";
+            if(d.study >= 8) text += "You are a dedicated academic explorer.";
+            
+            // Interaction Observer to start typing when visible
+            const bioEl = document.getElementById('aiBio');
+            const bioObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting && !bioEl.classList.contains('typed')) {
+                        bioEl.classList.add('typed');
+                        setTimeout(() => typeWriter(text, 'aiBio'), 500);
+                    }
+                });
+            }, { threshold: 0.5 });
+            bioObserver.observe(bioEl);
+        })();
+        {% endif %}
+
+        function openUpdateModal() {
+            const modal = document.getElementById('updateModal');
+            if(modal) modal.classList.add('show');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.scroll-anim').forEach((el) => observer.observe(el));
+
+        // Custom Validation and Fetch Handling
+        document.querySelectorAll("form").forEach(form => {
+            const route = form.getAttribute('data-route');
+            if(!route) return; // Skip non-AJAX forms (like delete)
+
+            form.setAttribute('novalidate', true);
+            form.addEventListener("submit", async function(e) {
+                e.preventDefault();
+                
+                // Reset errors
+                form.querySelectorAll('.error-msg').forEach(el => {
+                    el.innerText = "";
+                    el.classList.remove('show');
+                });
+
+                let isValid = true;
+                const inputs = form.querySelectorAll('input[required], textarea[required]');
+                inputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        const errorContainer = input.parentElement.querySelector('.error-msg');
+                        if (errorContainer) {
+                            errorContainer.innerText = "⚠️ " + (input.getAttribute('data-error') || "This field is required");
+                            errorContainer.classList.add('show');
+                        }
+                    }
+                });
+
+                if (!isValid) return;
+
+                const overlay = document.getElementById('processingOverlay');
+                if(overlay) overlay.classList.add('show');
+
+                const route = form.getAttribute('data-route');
+                const payload = {};
+                new FormData(form).forEach((val, key) => { payload[key] = isNaN(val) || val === "" ? val : Number(val); });
+                
+                // Map times
+                const sleepUI = form.querySelector('input[name="sleep_time_ui"]');
+                const wakeUI = form.querySelector('input[name="wake_time_ui"]');
+                if(sleepUI && sleepUI.value) payload.sleep_time = Number(sleepUI.value.split(':')[0]);
+                if(wakeUI && wakeUI.value) payload.wake_time = Number(wakeUI.value.split(':')[0]);
+
+                try {
+                    const response = await fetch(route, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    const resJson = await response.json();
+                    if(overlay) overlay.classList.remove('show');
+
+                    if(resJson.error) {
+                        const toast = document.createElement('div');
+                        toast.className = 'card';
+                        toast.style = 'position:fixed; bottom:20px; right:20px; width:auto; border-color:#fb7185; padding:1.5rem; z-index:9999;';
+                        toast.innerText = resJson.error;
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 4000);
+                    } else {
+                        if(route === '/check' || route === '/check_two') renderResultModal(resJson.data);
+                        else location.reload();
+                    }
+                } catch(err) { console.error(err); }
+            });
+        });
+
+        function renderResultModal(data) {
+            const body = document.getElementById('resultModalBody');
+            const title = document.getElementById('resultModalTitle');
+            if (data.matches) {
+                title.innerText = "Match Analysis";
+                let html = '<div style="display: flex; flex-direction: column; gap: 1.5rem;">';
+                data.matches.forEach(m => {
+                    const partnerName = m.partner.name ? `${m.partner.name} (#${m.partner.student_id})` : `Student #${m.partner.student_id}`;
+                    html += `
+                    <div class="card" style="padding: 1.5rem; text-align: left; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 100%;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                            <h4 style="font-size: 1.3rem; margin:0;">${partnerName}</h4>
+                            <div class="match-badge" style="padding: 0.4rem 0.8rem; font-size: 1rem;">${m.score}%</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px;">
+                            <h5 style="margin: 0 0 0.5rem 0; opacity: 0.7; font-size: 0.8rem; text-transform: uppercase;">Synergy Breakdown</h5>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${m.explanation.map(line => `<li style="margin: 0.3rem 0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">${line.includes('✔') ? '✅' : '⚠️'} ${line.replace('✔', '').replace('⚠', '')}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                body.innerHTML = html;
+            } else {
+                title.innerText = "Compatibility Report";
+                const p1 = data.your_data.name ? `${data.your_data.name} (#${data.your_data.student_id})` : `#${data.your_data.student_id}`;
+                const p2 = data.partner_data.name ? `${data.partner_data.name} (#${data.partner_data.student_id})` : `#${data.partner_data.student_id}`;
+                body.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem;">
+                        <span style="font-weight: 800; font-size: 1.1rem; color: #a5b4fc; background: rgba(165, 180, 252, 0.1); padding: 0.4rem 1rem; border-radius: 12px;">${p1}</span>
+                        <span style="opacity: 0.5; font-size: 1.2rem;">⚡</span>
+                        <span style="font-weight: 800; font-size: 1.1rem; color: #a5b4fc; background: rgba(165, 180, 252, 0.1); padding: 0.4rem 1rem; border-radius: 12px;">${p2}</span>
+                    </div>
+                    <div class="score-box" style="font-size: min(4rem, 12vw); font-weight: 900; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 2rem; border-radius: 35px; margin-bottom: 2rem; display: inline-flex; align-items: center; justify-content: center; min-width: 220px; box-shadow: 0 15px 35px rgba(16, 185, 129, 0.25);">
+                        ${data.score}%
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 20px; text-align: left;">
+                         <h5 style="margin: 0 0 1rem 0; opacity: 0.7; font-size: 0.85rem; text-transform: uppercase;">Compatibility Insights</h5>
+                         <ul style="list-style: none; padding: 0; margin: 0;">
+                            ${data.explanation.map(line => `<li style="margin: 0.5rem 0; font-size: 1rem; display: flex; align-items: center; gap: 10px;">${line.includes('✔') ? '✅' : '⚠️'} ${line.replace('✔', '').replace('⚠', '')}</li>`).join('')}
+                         </ul>
+                         <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; font-weight: 800; color: #4ef072; font-size: 1.1rem;">
+                            ${data.prediction}
+                         </div>
+                    </div>
+                </div>`;
+            }
+            document.getElementById('resultModal').classList.add('show');
+        }
+
+        // STAR INTERACTION SCRIPT
+        document.querySelectorAll('.stars .star').forEach(star => {
+            star.addEventListener('click', function() {
+                const val = this.getAttribute('data-val');
+                const container = this.parentElement;
+                const input = container.nextElementSibling;
+                input.value = val;
+                
+                container.querySelectorAll('.star').forEach(s => {
+                    if (s.getAttribute('data-val') <= val) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            });
+        });
+        function closeModals() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('show')); }
+
+        {% if role == 'student' and data %}
+        (function() {
+            new Chart(document.getElementById("dashChart"), {
+                type: 'radar',
+                data: {
+                    labels: ['Sleep', 'Wake', 'Study', 'Silence', 'Clean', 'Social', 'Stability', 'Agree'],
+                    datasets: [{
+                        label: 'Your Habits',
+                        data: [ {{ data.your_data.sleep_time }}, {{ data.your_data.wake_time }}, {{ data.your_data.study_hours }}, {{ data.your_data.silence_preference }}, {{ data.your_data.cleanliness_level }}, {{ data.your_data.introversion }}, {{ data.your_data.emotional_stability }}, {{ data.your_data.agreeableness }} ],
+                        backgroundColor: 'rgba(99, 102, 241, 0.4)', borderColor: '#6366f1', borderWidth: 3
+                    }]
+                },
+                options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.1)' }, grid: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: '#fff' }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+        })();
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,164 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Match Result</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Result | Smart Hostel</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-    <!-- Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(270deg, #667eea, #764ba2, #43cea2, #185a9d);
-    background-size: 800% 800%;
-    animation: gradientMove 15s ease infinite;
-    padding: 20px;
-}
-
-/* ANIMATION */
-@keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.container {
-    max-width: 1100px;
-    margin: auto;
-    text-align: center;
-    color: white;
-}
-
-/* GLASS CARD */
-.card {
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(15px);
-    border-radius: 15px;
-    padding: 18px;
-    color: white;
-    transition: 0.3s;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.card:hover {
-    transform: translateY(-8px) scale(1.02);
-}
-
-/* FLEX */
-.cards {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-}
-
-/* TITLE */
-h1 {
-    margin-bottom: 20px;
-    font-weight: 600;
-}
-
-/* SCORE BOX */
-.score-box {
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    padding: 15px;
-    border-radius: 12px;
-    font-size: 24px;
-    margin-bottom: 15px;
-    font-weight: bold;
-}
-
-/* PREDICTION */
-.prediction {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-/* TEXT */
-.card p {
-    margin: 6px 0;
-    font-size: 14px;
-}
-
-/* EXPLANATION */
-ul {
-    margin-top: 10px;
-    padding-left: 18px;
-}
-
-li {
-    font-size: 13px;
-    margin: 4px 0;
-}
-
-/* HIGHLIGHT */
-.highlight {
-    color: #ff4d4d;
-    font-weight: bold;
-}
-
-/* ERROR */
-.error-box {
-    background: white;
-    color: red;
-    padding: 20px;
-    border-radius: 10px;
-}
-
-/* BUTTON LINK */
-a {
-    display: inline-block;
-    margin-top: 25px;
-    padding: 10px 18px;
-    background: linear-gradient(135deg, #ff7e5f, #feb47b);
-    border-radius: 8px;
-    text-decoration: none;
-    color: white;
-    font-weight: 500;
-    transition: 0.3s;
-}
-
-a:hover {
-    transform: scale(1.05);
-}
-
-/* CHART BOX */
-canvas {
-    margin-top: 30px;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 15px;
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .cards {
-        flex-direction: column;
-        align-items: center;
-    }
-}
-</style>
-
 </head>
-
 <body>
 
-<div class="container">
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-brand">SmartHostel</div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">💡</button>
+        </div>
+    </nav>
+
+<div class="container scroll-anim visible" style="margin-top: 20px;">
 
 {% if error %}
-
     <div class="error-box">⚠️ {{ error }}</div>
-    <a href="/">⬅ Go Back</a>
-
+    <a href="/" class="back-link">⬅ Go Back</a>
 {% else %}
 
-    <h1>🎉 Match Result</h1>
+    <h1 class="result-h1">🎉 Match Result</h1>
 
     <!-- ================== CASE 1: COMPARE TWO ================== -->
     {% if data.partner_data %}
@@ -169,17 +39,16 @@ canvas {
 
         <div class="prediction">{{ data.prediction }}</div>
 
-        <div class="cards">
-
+        <div class="cards-container">
             <div class="card">
-                <h2>👤 Student 1</h2>
+                <h2 style="font-size:1.2rem; margin-bottom:1rem;">👤 Student 1</h2>
                 {% for key, value in data.your_data.items() %}
                     <p><strong>{{ key }}:</strong> {{ value }}</p>
                 {% endfor %}
             </div>
 
             <div class="card">
-                <h2>🤝 Student 2</h2>
+                <h2 style="font-size:1.2rem; margin-bottom:1rem;">🤝 Student 2</h2>
                 {% for key, value in data.partner_data.items() %}
                     <p>
                         <strong>{{ key }}:</strong> 
@@ -191,59 +60,76 @@ canvas {
                     </p>
                 {% endfor %}
             </div>
-
         </div>
 
     {% else %}
 
     <!-- ================== CASE 2: TOP 3 MATCHES ================== -->
+        <h2 style="font-size:1.5rem; margin-bottom:1rem; opacity:0.9;">👤 Your Profile</h2>
 
-        <h2>👤 Your Profile</h2>
-
-        <div class="card">
+        <div class="card" style="margin-bottom:2rem;">
             {% for key, value in data.your_data.items() %}
                 <p><strong>{{ key }}:</strong> {{ value }}</p>
             {% endfor %}
         </div>
 
-        <h2>🔥 Top 3 Matches</h2>
+        <h2 style="font-size:1.5rem; margin-bottom:1rem; opacity:0.9;">🔥 Top Matches</h2>
 
-        <div class="cards">
+        <div class="cards-container">
         {% for match in data.matches %}
-
             <div class="card">
-                <h3>🤝 Match ({{ match.score }}%)</h3>
-
+                <h3 style="margin-bottom:1rem;">🤝 Match ({{ match.score }}%)</h3>
                 {% for key, value in match.partner.items() %}
                     <p><strong>{{ key }}:</strong> {{ value }}</p>
                 {% endfor %}
-
-                <h4>💡 Why matched?</h4>
-                <ul>
+                <h4 style="margin-top:1rem; font-size:1rem;">💡 Why matched?</h4>
+                <ul class="why-list">
                     {% for line in match.explanation %}
                         <li>{{ line }}</li>
                     {% endfor %}
                 </ul>
             </div>
-
         {% endfor %}
         </div>
-
     {% endif %}
 
     <!-- ================== RADAR CHART ================== -->
-
     <canvas id="chart"></canvas>
-
-    <a href="/">⬅ Go Back</a>
+    <a href="/" class="back-link">⬅ Go Back</a>
 
 {% endif %}
 
 </div>
 
 <script>
-{% if data %}
+// THEME TOGGLE
+const themeToggle = document.getElementById('themeToggle');
+if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+    themeToggle.innerHTML = "🌙";
+}
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    if(document.body.classList.contains('light-mode')) {
+        themeToggle.innerHTML = "🌙";
+        localStorage.setItem('theme', 'light');
+    } else {
+        themeToggle.innerHTML = "💡";
+        localStorage.setItem('theme', 'dark');
+    }
+    
+    // Update chart colors if chart exists
+    if(window.myChart) {
+        let isLight = document.body.classList.contains('light-mode');
+        let color = isLight ? '#2d3748' : '#f0f0f0';
+        window.myChart.options.scales.x.ticks.color = color;
+        window.myChart.options.scales.y.ticks.color = color;
+        window.myChart.options.plugins.legend.labels.color = color;
+        window.myChart.update();
+    }
+});
 
+{% if data %}
 const labels = [
     "Sleep", "Wake", "Study", "Silence",
     "Clean", "Intro", "Emotion", "Agree"
@@ -284,7 +170,10 @@ const partner = [
 ];
 {% endif %}
 
-new Chart(document.getElementById("chart"), {
+let isLightMode = document.body.classList.contains('light-mode');
+let initialColor = isLightMode ? '#2d3748' : '#f0f0f0';
+
+window.myChart = new Chart(document.getElementById("chart"), {
     type: "bar",
     data: {
         labels: labels,
@@ -292,12 +181,14 @@ new Chart(document.getElementById("chart"), {
             {
                 label: "You",
                 data: you,
-                borderRadius: 8
+                borderRadius: 8,
+                backgroundColor: 'rgba(138, 43, 226, 0.7)'
             },
             {
                 label: "Match",
                 data: partner,
-                borderRadius: 8
+                borderRadius: 8,
+                backgroundColor: 'rgba(67, 206, 162, 0.7)'
             }
         ]
     },
@@ -306,24 +197,23 @@ new Chart(document.getElementById("chart"), {
         plugins: {
             legend: {
                 labels: {
-                    color: "white"
+                    color: initialColor
                 }
             }
         },
         scales: {
             x: {
-                ticks: { color: "white" },
+                ticks: { color: initialColor },
                 grid: { display: false }
             },
             y: {
                 beginAtZero: true,
-                ticks: { color: "white" },
-                grid: { color: "rgba(255,255,255,0.2)" }
+                ticks: { color: initialColor },
+                grid: { color: "rgba(150,150,150,0.2)" }
             }
         }
     }
 });
-
 {% endif %}
 </script>
 </body>

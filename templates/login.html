@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Smart Hostel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+    <div class="login-wrapper">
+        <div class="login-card scroll-anim visible">
+            <!-- Theme toggle integrated inline gracefully -->
+            <button class="theme-toggle" id="themeToggle" style="position:absolute; top:20px; right:20px;" aria-label="Toggle Theme">💡</button>
+
+            <!-- Premium Logo -->
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="float-anim" style="width:64px; height:64px; filter: drop-shadow(0 0 10px rgba(99,102,241,0.5));">
+            </div>
+
+            <h1 class="hero-title" style="font-size:2.4rem; margin-bottom:0.2rem; text-align:center;">Smart Hostel</h1>
+            <p style="text-align:center; opacity:0.8; margin-bottom: 2.5rem; letter-spacing: 0.05em; font-weight: 500;">PREMIUM ALLOCATION PORTAL</p>
+            
+            {% if error %}
+            <div class="error-box" style="padding:1rem; margin-bottom:1rem;">{{ error }}</div>
+            {% endif %}
+
+            <div class="toggle-container">
+                <button type="button" id="btn-student" class="toggle-btn active" onclick="switchTab('student')">Student</button>
+                <button type="button" id="btn-admin" class="toggle-btn" onclick="switchTab('admin')">Admin</button>
+            </div>
+
+            <form action="/login" method="POST" id="loginForm">
+                <input type="hidden" name="login_type" id="login_type" value="student">
+                
+                <!-- Student Fields -->
+                <div id="student-fields" class="fade-in">
+                    <div class="form-group">
+                        <label>Your Name (Optional)</label>
+                        <input type="text" name="name" placeholder="E.g. Sarah">
+                    </div>
+                    <div class="form-group">
+                        <label>Student ID</label>
+                        <input type="text" name="student_id" id="student_id" placeholder="Enter your registered ID">
+                    </div>
+                </div>
+
+                <!-- Admin Fields -->
+                <div id="admin-fields" class="fade-in" style="display: none;">
+                    <div class="form-group">
+                        <label>Admin ID</label>
+                        <input type="text" name="admin_id" id="admin_id" placeholder="e.g. admin">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" id="admin_pass" placeholder="e.g. admin123">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" style="margin-top:0.5rem;">Secure Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Init theme
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'light') { 
+            document.body.classList.add('light-mode'); 
+            themeToggle.innerHTML = "🌙";
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            if(document.body.classList.contains('light-mode')) {
+                themeToggle.innerHTML = "🌙";
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeToggle.innerHTML = "💡";
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        function switchTab(type) {
+            document.getElementById('login_type').value = type;
+            if (type === 'student') {
+                document.getElementById('btn-student').classList.add('active');
+                document.getElementById('btn-admin').classList.remove('active');
+                document.getElementById('student-fields').style.display = 'block';
+                document.getElementById('admin-fields').style.display = 'none';
+            } else {
+                document.getElementById('btn-admin').classList.add('active');
+                document.getElementById('btn-student').classList.remove('active');
+                document.getElementById('admin-fields').style.display = 'block';
+                document.getElementById('student-fields').style.display = 'none';
+            }
+        }
+
+        // Processing handling
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            document.getElementById('processingOverlay').style.display = 'flex';
+        });
+    </script>
+    <div id="processingOverlay" style="z-index: 10000; display:none; flex-direction:column; align-items:center; justify-content:center; position:fixed; top:0; left:0; width:100%; height:100%; backdrop-filter: blur(12px) saturate(180%); background: rgba(0,0,0,0.4);">
+        <div class="card float-anim" style="max-width:300px; padding:2rem; text-align:center; border: 1px solid #818cf8; background: rgba(30, 41, 59, 0.7); border-radius: 24px; color: white;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; border: 4px dotted #818cf8; border-top-color: transparent; margin: 0 auto 1.5rem; animation: spin 1s linear infinite;"></div>
+            <h3 style="margin:0; font-weight:700;">Opening Portal...</h3>
+            <p style="font-size:0.85rem; opacity:0.6; margin-top:0.5rem;">Synchronizing Neuro-Link</p>
+        </div>
+    </div>
+    <style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
+</body>
+</html>

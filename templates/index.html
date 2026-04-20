@@ -1,186 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Smart Hostel</title>
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Hostel Room Allocation</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
 
-<!-- 🌙 DARK MODE TOGGLE -->
-<div style="text-align:right; padding:10px;">
-    <button class="toggle-btn" onclick="toggleTheme()">🌙 / ☀️</button>
-</div>
-
-<div class="container">
-
-    <h1 class="heading-main">Smart Hostel Room Allocation</h1>
-
-    <!-- ADD NEW STUDENT -->
-    <div class="card">
-        <h2 class="heading-sub">Add New Student</h2>
-
-        <form action="/submit" method="POST">
-
-            <input type="number" name="student_id" placeholder="Student ID" min="1" required>
-
-            <input type="number" name="sleep_time" placeholder="Sleep Time (0-23)" min="0" max="23" required>
-            <input type="number" name="wake_time" placeholder="Wake Time (0-23)" min="0" max="23" required>
-            <input type="number" name="study_hours" placeholder="Study Hours (0-12)" min="0" max="12" required>
-
-            <input type="number" name="silence_preference" placeholder="Silence (1-10)" min="1" max="10" required>
-            <input type="number" name="cleanliness_level" placeholder="Cleanliness (1-10)" min="1" max="10" required>
-
-            <input type="number" name="introversion" placeholder="Introversion (1-10)" min="1" max="10" required>
-            <input type="number" name="emotional_stability" placeholder="Emotional Stability (1-10)" min="1" max="10" required>
-            <input type="number" name="agreeableness" placeholder="Agreeableness (1-10)" min="1" max="10" required>
-
-            <h3>⭐ Set Your Priorities</h3>
-
-            <!-- PRIORITY ROWS -->
-            <div class="priority-row">
-                <label>Sleep Time</label>
-                <input type="hidden" name="sleep_p" id="sleep_p" required>
-                <div class="stars" data-input="sleep_p"></div>
+    <nav style="display: flex; justify-content: center; padding: 2rem 0; background: transparent; position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(10px);">
+        <div class="tab-nav scroll-anim visible" style="margin-bottom: 0; padding: 0.6rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; padding: 0 1.5rem; border-right: 1px solid rgba(255,255,255,0.1); margin-right: 1rem;">
+                <img src="{{ url_for('static', filename='logo.png') }}" style="width:32px; height:32px; margin-right:10px;">
+                <span style="font-weight: 800; letter-spacing: -0.02em; font-size: 1.1rem; color: white;">SmartHostel</span>
             </div>
+            <button class="tab-btn active" onclick="switchMainTab('tab-join', this)">👋 Join Now</button>
+            <button class="tab-btn" onclick="switchMainTab('tab-match', this)">🔍 Find Match</button>
+            <button class="tab-btn" onclick="switchMainTab('tab-compare', this)">⚖️ Synergy Lab</button>
+            <a href="/login" class="tab-btn" style="color: #a5b4fc; text-decoration: none; display: flex; align-items: center; border-left: 1px solid rgba(255,255,255,0.1); margin-left:1rem; padding-left:1.5rem;">Login</a>
+        </div>
+    </nav>
 
-            <div class="priority-row">
-                <label>Wake Time</label>
-                <input type="hidden" name="wake_p" id="wake_p" required>
-                <div class="stars" data-input="wake_p"></div>
-            </div>
+    <div class="container" style="max-width: 1000px; padding-top: 0;">
+        
+        <header class="hero scroll-anim visible" style="padding: 2rem 0; text-align: center;">
+            <h1 class="hero-title" style="font-size: 4.5rem; margin-bottom: 0.5rem; letter-spacing: -0.05em;">Found Your Vibe.</h1>
+            <p class="hero-cta" style="font-size: 1.2rem; opacity: 0.8;">Neural matching for a high-performance hostel life.</p>
+        </header>
 
-            <div class="priority-row">
-                <label>Study Hours</label>
-                <input type="hidden" name="study_p" id="study_p" required>
-                <div class="stars" data-input="study_p"></div>
-            </div>
+        <!-- =================== JOIN SECTION =================== -->
+        <div id="tab-join" class="tab-content active">
+            <section id="add-student" class="scroll-anim" style="padding-top:0; display:flex; justify-content:center;">
+                <div class="card" style="max-width: 800px; width:100%;">
+                    <h2 class="section-title">New Entry Enrolment</h2>
+                    <p class="section-desc">Initialize your habitual signature in our neural database.</p>
+                    <form id="addStudentForm" action="/submit" method="POST">
+                        <div class="form-section">
+                            <div class="form-section-title">Identity & Daily Cycle</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <div class="field">
+                                    <div class="field-label">Display Name <span class="hint" data-tip="How your roommate will see you.">ⓘ</span></div>
+                                    <input type="text" name="name" placeholder="e.g. Alex" required>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Student ID <span class="hint" data-tip="Unique registration number.">ⓘ</span></div>
+                                    <input type="number" name="student_id" placeholder="e.g. 5001" min="1" required>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Sleep Time <span class="hint" data-tip="Your usual lights out.">ⓘ</span></div>
+                                    <input type="time" name="sleep_time_ui" required>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Wake Time <span class="hint" data-tip="Your usual start.">ⓘ</span></div>
+                                    <input type="time" name="wake_time_ui" required>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="priority-row">
-                <label>Silence</label>
-                <input type="hidden" name="silence_p" id="silence_p" required>
-                <div class="stars" data-input="silence_p"></div>
-            </div>
+                        <div class="form-section">
+                            <div class="form-section-title">Habit Spectrum (1-10)</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                                <div class="field">
+                                    <div class="field-label">Cleanliness <span class="hint" data-tip="1:messy, 10:tidy">ⓘ</span></div>
+                                    <input type="number" name="cleanliness_level" min="1" max="10" required>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Social Energy <span class="hint" data-tip="1:intro, 10:extro">ⓘ</span></div>
+                                    <input type="number" name="introversion" min="1" max="10" required>
+                                </div>
+                                <div class="field">
+                                    <div class="field-label">Stability <span class="hint" data-tip="1:moody, 10:calm">ⓘ</span></div>
+                                    <input type="number" name="emotional_stability" min="1" max="10" required>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="priority-row">
-                <label>Cleanliness</label>
-                <input type="hidden" name="clean_p" id="clean_p" required>
-                <div class="stars" data-input="clean_p"></div>
-            </div>
+                        <button class="btn shimmer" type="submit">Deploy Strategy</button>
+                    </form>
+                </div>
+            </section>
+        </div>
 
-            <div class="priority-row">
-                <label>Introversion</label>
-                <input type="hidden" name="intro_p" id="intro_p" required>
-                <div class="stars" data-input="intro_p"></div>
-            </div>
+        <!-- =================== FIND MATCH TAB =================== -->
+        <div id="tab-match" class="tab-content">
+            <section id="check-existing" class="scroll-anim" style="padding-top:0; display:flex; justify-content:center;">
+                <div class="card" style="max-width: 600px; width:100%;">
+                    <h2 class="section-title">External Search</h2>
+                    <p class="section-desc">Check matches for an existing profile ID.</p>
+                    <form id="checkForm" action="/check" method="POST">
+                        <input type="number" name="student_id" placeholder="Enter Registration ID" min="1" required style="width:100%; margin-bottom:1.5rem;">
+                        <button class="btn shimmer" type="submit" style="width: 100%;">Analyze Profile</button>
+                    </form>
+                </div>
+            </section>
+        </div>
 
-            <div class="priority-row">
-                <label>Emotional Stability</label>
-                <input type="hidden" name="emotion_p" id="emotion_p" required>
-                <div class="stars" data-input="emotion_p"></div>
-            </div>
-
-            <div class="priority-row">
-                <label>Agreeableness</label>
-                <input type="hidden" name="agree_p" id="agree_p" required>
-                <div class="stars" data-input="agree_p"></div>
-            </div>
-
-            <button type="submit">Find Roommate</button>
-        </form>
+        <!-- =================== COMPARE TAB =================== -->
+        <div id="tab-compare" class="tab-content">
+            <section id="compare" class="scroll-anim" style="padding-top:0; display:flex; justify-content:center;">
+                <div class="card" style="max-width: 600px; width:100%;">
+                    <h2 class="section-title">Synergy Analysis</h2>
+                    <p class="section-desc">Evaluate the probability of co-living success.</p>
+                    <form id="compareForm" action="/check_two" method="POST">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                            <input type="number" name="student1" placeholder="ID Alpha" min="1" required>
+                            <input type="number" name="student2" placeholder="ID Beta" min="1" required>
+                        </div>
+                        <button class="btn shimmer" type="submit" style="width: 100%;">Compare Signatures</button>
+                    </form>
+                </div>
+            </section>
+        </div>
     </div>
 
-    <!-- CHECK EXISTING -->
-    <div class="card">
-        <h2 class="heading-sub">Check Existing Match</h2>
-
-        <form action="/check" method="POST">
-            <input type="number" name="student_id" placeholder="Enter Student ID" min="1" required>
-            <button type="submit">Check Match</button>
-        </form>
-    </div>
-
-    <!-- COMPARE TWO STUDENTS -->
-    <div class="card">
-        <h2 class="heading-sub">Compare Two Students</h2>
-
-        <form action="/check_two" method="POST">
-            <input type="number" name="student1" placeholder="Student ID 1" required>
-            <input type="number" name="student2" placeholder="Student ID 2" required>
-            <button type="submit">Check Compatibility</button>
-        </form>
-    </div>
-
-</div>
-
-<!-- ⭐ STAR SCRIPT -->
-<script>
-document.querySelectorAll(".stars").forEach(container => {
-    const inputId = container.dataset.input;
-    const hiddenInput = document.getElementById(inputId);
-
-    for (let i = 1; i <= 5; i++) {
-        const star = document.createElement("span");
-        star.innerHTML = "★";
-        star.classList.add("star");
-
-        star.addEventListener("click", () => {
-            hiddenInput.value = i;
-            updateStars(container, i);
-        });
-
-        star.addEventListener("mouseover", () => {
-            updateStars(container, i);
-        });
-
-        star.addEventListener("mouseout", () => {
-            updateStars(container, hiddenInput.value || 0);
-        });
-
-        container.appendChild(star);
-    }
-
-    function updateStars(container, value) {
-        const stars = container.querySelectorAll(".star");
-        stars.forEach((s, index) => {
-            if (index < value) {
-                s.classList.add("active");
-            } else {
-                s.classList.remove("active");
-            }
-        });
-    }
-});
-</script>
-
-<!-- 🌙 DARK MODE SCRIPT -->
-<script>
-function toggleTheme() {
-    document.body.classList.toggle("light-mode");
-}
-</script>
-
-<!-- VALIDATION -->
-<script>
-document.querySelectorAll("form").forEach(form => {
-    form.addEventListener("submit", function(e) {
-        let inputs = form.querySelectorAll("input[type='number']");
-        for (let input of inputs) {
-            let value = Number(input.value);
-
-            if (!Number.isInteger(value) || value < 0) {
-                alert("❌ Only positive integers allowed!");
-                e.preventDefault();
-                return;
+    <!-- SCRIPTS -->
+    <script>
+        function switchMainTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if(target) {
+                target.classList.add('active');
+                if(btn) btn.classList.add('active');
+                document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
             }
         }
-    });
-});
-</script>
 
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.scroll-anim').forEach((el) => observer.observe(el));
+    </script>
 </body>
 </html>
